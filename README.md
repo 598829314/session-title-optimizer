@@ -37,6 +37,7 @@
 | driftCheckMessages | 6 | 好标题的漂移复查频率 |
 | categoriesJson | 空 | 自定义类别表（留空用内置） |
 | genEndpoint / genApiKey / genModel | 空 | 自定义 LLM 端点，留空走宿主模型 |
+| fallbackEndpoint / fallbackApiKey / fallbackModel | 空 | 降级端点：宿主模型调用失败时自动切换（如本地 OMLX） |
 | maxRenamesPerRun | 20 | 批量整理单次上限 |
 | debugEvents | 关 | 事件调试日志 |
 

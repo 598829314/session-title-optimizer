@@ -57,13 +57,13 @@
           "type": "string",
           "default": "",
           "title": "生成端点（OpenAI 兼容）",
-          "description": "留空走宿主默认模型。填写如 http://127.0.0.1:10087/v1 则改用该端点。"
+          "description": "留空走宿主默认模型。填写自定义 OpenAI 兼容端点则改用该端点。"
         },
         "genApiKey": {
           "type": "string",
           "default": "",
           "title": "生成端点 API Key",
-          "description": "自定义端点的 Bearer Token，如本地 OMLX 的 1234。"
+          "description": "自定义端点的 Bearer Token，在插件设置中填写。"
         },
         "genModel": {
           "type": "string",
@@ -73,19 +73,19 @@
         },
         "fallbackEndpoint": {
           "type": "string",
-          "default": "http://100.70.149.123:10086/v1",
+          "default": "",
           "title": "降级端点（OpenAI 兼容）",
-          "description": "宿主模型调用失败时自动改用的端点。默认指向 Mac Studio OMLX。"
+          "description": "宿主模型调用失败时自动改用的端点（OpenAI 兼容），如 http://localhost:8000/v1。留空则宿主失败直接报错。"
         },
         "fallbackApiKey": {
           "type": "string",
-          "default": "1234",
+          "default": "",
           "title": "降级端点 API Key",
-          "description": "降级端点的 Bearer Token。"
+          "description": "降级端点的 Bearer Token，在插件设置中填写。"
         },
         "fallbackModel": {
           "type": "string",
-          "default": "Qwen3.6-35B-A3B",
+          "default": "",
           "title": "降级端点模型名",
           "description": "降级端点的模型 ID。"
         },
