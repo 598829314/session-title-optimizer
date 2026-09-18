@@ -1,0 +1,107 @@
+{
+  "manifestVersion": 1,
+  "id": "session-title-optimizer",
+  "name": "会话标题优化器",
+  "version": "0.3.1",
+  "description": "随对话周期自动优化会话标题：每轮落定后后台评估，把烂标题（URL、问候、思考过程泄露）改写为「类别 emoji｜对象｜目标」格式，实时生效不打断对话。支持类别热配置、手动改名锁定、历史批量整理。",
+  "minAppVersion": "0.82.0",
+  "trust": "full-access",
+  "activationEvents": [
+    "onStartup"
+  ],
+  "entry": "index.js",
+  "capabilities": [
+    "session",
+    "model"
+  ],
+  "contributes": {
+    "tools": [
+      "./tools/title-scan.js",
+      "./tools/title-rename.js",
+      "./tools/title-optimize.js"
+    ],
+    "configuration": {
+      "title": "会话标题优化器设置",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "title": "启用自动优化",
+          "description": "关闭后停止自动评估，手动工具仍可用。"
+        },
+        "debounceSec": {
+          "type": "number",
+          "default": 15,
+          "title": "去抖秒数",
+          "description": "一段工作落定后静止多少秒才触发一次评估。"
+        },
+        "minIntervalSec": {
+          "type": "number",
+          "default": 180,
+          "title": "同会话最小评估间隔（秒）",
+          "description": "同一会话两次 LLM 评估之间的最小间隔，控制成本。"
+        },
+        "driftCheckMessages": {
+          "type": "number",
+          "default": 6,
+          "title": "漂移复查消息数",
+          "description": "标题已良好时，每累积 N 条新消息才做一次主线漂移复查。"
+        },
+        "categoriesJson": {
+          "type": "string",
+          "default": "",
+          "title": "自定义类别表（JSON）",
+          "description": "JSON 数组 [{\"emoji\":\"📰\",\"name\":\"宣传稿件\",\"desc\":\"描述\"}]，留空用内置 12 类。修改后下一轮评估即生效。"
+        },
+        "genEndpoint": {
+          "type": "string",
+          "default": "",
+          "title": "生成端点（OpenAI 兼容）",
+          "description": "留空走宿主默认模型。填写如 http://127.0.0.1:10087/v1 则改用该端点。"
+        },
+        "genApiKey": {
+          "type": "string",
+          "default": "",
+          "title": "生成端点 API Key",
+          "description": "自定义端点的 Bearer Token，如本地 OMLX 的 1234。"
+        },
+        "genModel": {
+          "type": "string",
+          "default": "",
+          "title": "生成模型名",
+          "description": "自定义端点的模型 ID。"
+        },
+        "fallbackEndpoint": {
+          "type": "string",
+          "default": "http://100.70.149.123:10086/v1",
+          "title": "降级端点（OpenAI 兼容）",
+          "description": "宿主模型调用失败时自动改用的端点。默认指向 Mac Studio OMLX。"
+        },
+        "fallbackApiKey": {
+          "type": "string",
+          "default": "1234",
+          "title": "降级端点 API Key",
+          "description": "降级端点的 Bearer Token。"
+        },
+        "fallbackModel": {
+          "type": "string",
+          "default": "Qwen3.6-35B-A3B",
+          "title": "降级端点模型名",
+          "description": "降级端点的模型 ID。"
+        },
+        "maxRenamesPerRun": {
+          "type": "number",
+          "default": 20,
+          "title": "批量整理单次上限",
+          "description": "title_optimize 一次最多改写多少个标题，防止批量翻车。"
+        },
+        "debugEvents": {
+          "type": "boolean",
+          "default": false,
+          "title": "记录事件调试日志",
+          "description": "把收到的事件类型写入插件数据目录 debug-events.jsonl。"
+        }
+      }
+    }
+  }
+}
