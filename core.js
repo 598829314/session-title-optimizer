@@ -30,6 +30,11 @@ export function heuristicBadTitle(title) {
   if (GREETING_RE.test(t)) return { bad: true, reason: "无信息问候" };
   if (/^\//.test(t) || t.includes("/Users/")) return { bad: true, reason: "文件路径当标题" };
   if (/^\[Use skill|^\[SessionFile\]|^⚙|^经?执行命令/.test(t)) return { bad: true, reason: "系统噪音" };
+  // 格式机械检查：必须以类别 emoji 开头 + 含全角「｜」（此判定由代码负责，不信任模型肉眼）
+  const first = [...t][0] || "";
+  if (!/\p{Extended_Pictographic}/u.test(first) || !t.includes("｜")) {
+    return { bad: true, reason: "格式不符（须为「emoji 对象｜目标」）" };
+  }
   const visible = t.replace(/\s/g, "");
   if (visible.length > 40) return { bad: true, reason: "超长（疑似截断）" };
   return { bad: false, reason: "" };

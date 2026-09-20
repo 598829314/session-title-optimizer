@@ -147,7 +147,7 @@ export default class SessionTitleOptimizer {
       } else {
         appendLog(dataDir, { via: "auto", sessionPath: sp, agentId: ent.agentId, event: "kept", title: explicitTitle, reason: naming.reason, msgCount: tr.messageCount });
       }
-      if (!bad.bad) ent.lastDriftCheckCount = tr.messageCount;
+      ent.lastDriftCheckCount = tr.messageCount; // 评估后一律等 6 条新消息再复查（含 keep），防循环烧钱
     };
 
     shared.evaluateSessionPath = async (sp) => {
