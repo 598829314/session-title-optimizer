@@ -175,35 +175,44 @@ async function fetchOpenAICompat(cfg, systemPrompt, userContent, maxTokens) {
   return j?.choices?.[0]?.message?.content || "";
 }
 
-export async function sampleText(bus, cfg, pluginId, agentId, systemPrompt, userContent, maxTokens = 500) {
+export async function sampleText(bus, cfg, pluginId, agentId, systemPrompt, userContent, maxTokens = 1500) {
+  const errors = [];
+  // 主路：genEndpoint 直连（带关闭思考参数）
   if (cfg.genEndpoint) {
-    return fetchOpenAICompat(cfg, systemPrompt, userContent, maxTokens);
+    try {
+      return await fetchOpenAICompat(cfg, systemPrompt, userContent, maxTokens);
+    } catch (e) {
+      errors.push("endpoint: " + String(e?.message || e).slice(0, 80));
+    }
   }
+  // 降级：宿主模型（思考模式不受控，预算放大给思考留空间）
   try {
     const res = await bus.request("model:sample-text", {
       systemPrompt,
       messages: [{ role: "user", content: userContent }],
-      maxTokens,
+      maxTokens: maxTokens + 2000,
       temperature: 0.2,
       pluginId,
       ...(agentId ? { agentId } : {})
     });
     const text = res?.text || res?.content || "";
     if (text) return text;
-    throw new Error("宿主模型返回空");
+    errors.push("host: 空返回");
   } catch (e) {
-    if (cfg.fallbackEndpoint) {
-      try {
-        return await fetchOpenAICompat(
-          { genEndpoint: cfg.fallbackEndpoint, genApiKey: cfg.fallbackApiKey, genModel: cfg.fallbackModel },
-          systemPrompt, userContent, maxTokens
-        );
-      } catch (e2) {
-        throw new Error("[fallback失败] " + String(e2?.message || e2).slice(0, 120) + " | 原错误: " + String(e?.message || e).slice(0, 80));
-      }
-    }
-    throw new Error("[无fallback] " + String(e?.message || e).slice(0, 100));
+    errors.push("host: " + String(e?.message || e).slice(0, 80));
   }
+  // 兜底：fallbackEndpoint（若与主路不同）
+  if (cfg.fallbackEndpoint && cfg.fallbackEndpoint !== cfg.genEndpoint) {
+    try {
+      return await fetchOpenAICompat(
+        { genEndpoint: cfg.fallbackEndpoint, genApiKey: cfg.fallbackApiKey, genModel: cfg.fallbackModel },
+        systemPrompt, userContent, maxTokens
+      );
+    } catch (e) {
+      errors.push("fallback: " + String(e?.message || e).slice(0, 80));
+    }
+  }
+  throw new Error(errors.join(" | ").slice(0, 200));
 }
 
 // 解析 LLM 返回的命名 JSON
