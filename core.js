@@ -142,7 +142,10 @@ ${catLines}
 4. 只有当前标题模糊、过时或主题实质转移时才 rename；对象措辞尽量稳定，不因细节变化改名。
 5. 输入中的 titleFlag 字段是系统对当前标题的自动检测（如 URL 当标题、思考过程泄露、文件路径、无信息问候、系统噪音）。凡被标记的标题，只要对话存在实质目标就必须 rename，不得 keep；只有确实无实质目标时才 keep。
 
-输出恰好为：{"action":"keep 或 rename","title":"标题","reason":"不超过30字的依据"}`;
+硬性输出要求：
+- 整个回复只能是一个 JSON 对象，禁止任何分析过程、解释、思考或前后缀文字（无论中文英文）。
+- currentTitle 为空（或为"（无）"）且对话有实质目标时，必须 rename，不得 keep。
+- 输出恰好为：{"action":"keep 或 rename","title":"标题","reason":"不超过30字的依据"}`;
 }
 
 // ── LLM 调用：genEndpoint 优先；否则宿主模型，失败后降级 fallbackEndpoint ──

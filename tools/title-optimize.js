@@ -87,7 +87,7 @@ export async function execute(input, ctx) {
         fallbackEndpoint: String(input.fallbackEndpoint || ctx.config?.get?.("fallbackEndpoint") || "").trim(),
         fallbackApiKey: String(input.fallbackApiKey || ctx.config?.get?.("fallbackApiKey") || ""),
         fallbackModel: String(input.fallbackModel || ctx.config?.get?.("fallbackModel") || "").trim()
-      }, ctx.pluginId, cand.agentId, sys, userPayload, 400);
+      }, ctx.pluginId, cand.agentId, sys, userPayload, 1500);
       naming = parseNaming(text, cand.title);
     } catch (e) {
       results.push({ ...cand, action: "error", note: String(e?.message || e).slice(0, 80) });

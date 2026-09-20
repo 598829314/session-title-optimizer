@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "id": "session-title-optimizer",
   "name": "会话标题优化器",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "随对话周期自动优化会话标题：每轮落定后后台评估，把烂标题（URL、问候、思考过程泄露）改写为「类别 emoji｜对象｜目标」格式，实时生效不打断对话。支持类别热配置、手动改名锁定、历史批量整理。",
   "minAppVersion": "0.82.0",
   "trust": "full-access",

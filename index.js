@@ -126,7 +126,7 @@ export default class SessionTitleOptimizer {
         firstUserMessage: tr.firstUser,
         recentTurns: tr.excerpt
       });
-      const text = await sampleText(bus, cfg(), pluginId, ent.agentId, sys, userPayload, 400);
+      const text = await sampleText(bus, cfg(), pluginId, ent.agentId, sys, userPayload, 1500);
       const naming = parseNaming(text, explicitTitle);
       if (!naming) {
         appendLog(dataDir, { via: "auto", sessionPath: sp, agentId: ent.agentId, event: "parse_fail", raw: text.slice(0, 120) });
