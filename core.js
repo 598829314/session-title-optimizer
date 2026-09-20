@@ -226,6 +226,11 @@ export function parseNaming(text, currentTitle) {
     let title = String(j.title || "").trim();
     if (action === "rename") {
       if (!title) return null;
+      // 分隔符归一化：Qwen 偶尔用 —/–/－ 代替全角「｜」
+      if (!title.includes("｜")) {
+        const mm = title.match(/^(.+?)\s*[—–－]\s*(.+)$/) || title.match(/^(.+?)\s+-\s+(.+)$/);
+        if (mm && mm[1].trim() && mm[2].trim()) title = mm[1].trim() + "｜" + mm[2].trim();
+      }
       if (!/^\S{1,4}\s/.test(title) || !title.includes("｜")) {
         // 结构不符：emoji + 空格 + 含「｜」
         if (!title.includes("｜")) return null;
