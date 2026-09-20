@@ -78,9 +78,9 @@ export async function execute(input, ctx) {
       recentTurns: tr.excerpt
     });
 
-    let naming = null;
+    let naming = null, rawText = "";
     try {
-      const text = await sampleText(ctx.bus, {
+      rawText = await sampleText(ctx.bus, {
         genEndpoint: String(input.genEndpoint || ctx.config?.get?.("genEndpoint") || "").trim(),
         genApiKey: String(input.genApiKey || ctx.config?.get?.("genApiKey") || ""),
         genModel: String(input.genModel || ctx.config?.get?.("genModel") || "").trim(),
@@ -94,7 +94,7 @@ export async function execute(input, ctx) {
       continue;
     }
 
-    if (!naming) { results.push({ ...cand, action: "error", note: "解析失败:" + String(text).replace(/\n/g, " ").slice(0, 140) }); continue; }
+    if (!naming) { results.push({ ...cand, action: "error", note: "解析失败:" + String(rawText).replace(/\n/g, " ").slice(0, 140) }); continue; }
 
     if (naming.action === "keep" || !naming.title || naming.title === cand.title) {
       results.push({ ...cand, action: "keep", reason: naming.reason });
