@@ -1,7 +1,7 @@
 import {
   isChatSessionPath, agentFromPath, heuristicBadTitle, extractTranscript,
   loadCategories, buildNamingPrompt, sampleText, parseNaming,
-  loadBaseline, saveBaseline, loadLocks, appendLog
+  loadBaseline, saveBaseline, loadLocks, appendLog, buildMigratePrompt
 } from "../core.js";
 
 export const name = "title_optimize";
@@ -52,9 +52,11 @@ export async function execute(input, ctx) {
 
   const locks = loadLocks(dataDir);
   const baseline = loadBaseline(dataDir);
-  const sys = buildNamingPrompt(loadCategories({
+  const cats = loadCategories({
     genEndpoint: "", categoriesJson: String(ctx.config?.get?.("categoriesJson") || "")
-  }));
+  });
+  const sysJudge = buildNamingPrompt(cats);
+  const sysMigrate = buildMigratePrompt(cats);
 
   const limit = Math.min(Math.max(1, Number(input.limit) || maxRenames), maxRenames);
   const results = [];
@@ -71,6 +73,7 @@ export async function execute(input, ctx) {
     const tr = extractTranscript(cand.sessionPath);
     if (tr.messageCount < 2) { results.push({ ...cand, action: "skip", note: "对话过短" }); continue; }
 
+    const formatOnly = (cand.reason || "").startsWith("格式不符");
     const userPayload = JSON.stringify({
       currentTitle: cand.title,
       titleFlag: cand.reason || null,
@@ -87,8 +90,8 @@ export async function execute(input, ctx) {
         fallbackEndpoint: String(input.fallbackEndpoint || ctx.config?.get?.("fallbackEndpoint") || "").trim(),
         fallbackApiKey: String(input.fallbackApiKey || ctx.config?.get?.("fallbackApiKey") || ""),
         fallbackModel: String(input.fallbackModel || ctx.config?.get?.("fallbackModel") || "").trim()
-      }, ctx.pluginId, cand.agentId, sys, userPayload, 1500);
-      naming = parseNaming(rawText, cand.title);
+      }, ctx.pluginId, cand.agentId, formatOnly ? sysMigrate : sysJudge, userPayload, 1500);
+      naming = parseNaming(rawText, cand.title, formatOnly);
     } catch (e) {
       results.push({ ...cand, action: "error", note: String(e?.message || e).slice(0, 80) });
       continue;

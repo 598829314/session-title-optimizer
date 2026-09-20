@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {
   agentFromPath, isChatSessionPath, heuristicBadTitle, extractTranscript,
-  loadCategories, buildNamingPrompt, sampleText, parseNaming,
+  loadCategories, buildNamingPrompt, buildMigratePrompt, sampleText, parseNaming,
   loadBaseline, saveBaseline, loadLocks, saveLocks, appendLog
 } from "./core.js";
 
@@ -119,7 +119,10 @@ export default class SessionTitleOptimizer {
       const driftDue = tr.messageCount - (ent.lastDriftCheckCount || 0) >= c.driftCheckMessages;
       if (!bad.bad && !driftDue) return;
 
-      const sys = buildNamingPrompt(loadCategories(cfg()));
+      const formatOnly = bad.bad && bad.reason.startsWith("格式不符");
+      const sys = formatOnly
+        ? buildMigratePrompt(loadCategories(cfg()))
+        : buildNamingPrompt(loadCategories(cfg()));
       const userPayload = JSON.stringify({
         currentTitle: explicitTitle,
         titleFlag: bad.bad ? bad.reason : null,
@@ -127,7 +130,7 @@ export default class SessionTitleOptimizer {
         recentTurns: tr.excerpt
       });
       const text = await sampleText(bus, cfg(), pluginId, ent.agentId, sys, userPayload, 1500);
-      const naming = parseNaming(text, explicitTitle);
+      const naming = parseNaming(text, explicitTitle, formatOnly);
       if (!naming) {
         appendLog(dataDir, { via: "auto", sessionPath: sp, agentId: ent.agentId, event: "parse_fail", raw: text.slice(0, 120) });
         return;

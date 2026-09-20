@@ -222,17 +222,35 @@ export async function sampleText(bus, cfg, pluginId, agentId, systemPrompt, user
   throw new Error(errors.join(" | ").slice(0, 200));
 }
 
+
+// ── 格式迁移提示词：没有 keep 选项，模型唯一的任务是改写结构 ──
+export function buildMigratePrompt(categories) {
+  const catLines = categories.map(c => `- ${c.emoji} ${c.name}：${c.desc}`).join("\n");
+  return `你是会话标题格式化器。当前标题的内容准确但不符合标准结构，你的唯一任务是把它的含义改写为标准结构，不是判断要不要改。
+
+标准结构：一个类别 emoji + 一个空格 + 对象 + 全角「｜」+ 核心目标。
+- 对象与目标从 currentTitle 和对话摘录中提取，不臆造新含义。
+- 中文标题共 10~26 个字；产品名、电站名、技术名词保留原文。
+- 必须以类别 emoji 开头，且包含恰好一个全角「｜」。
+
+类别选择（按对话持续工作的产物）：
+${catLines}
+
+整个回复只能是一个 JSON 对象：{"action":"rename","title":"改写后的标题","reason":"不超过30字的依据"}`;
+}
+
 // 解析 LLM 返回的命名 JSON
-export function parseNaming(text, currentTitle) {
+export function parseNaming(text, currentTitle, migrate = false) {
   const clean = String(text || "").replace(/<think>[\s\S]*?<\/think>/g, "");
   const m = clean.match(/\{[\s\S]*\}/);
   if (!m) return null;
   try {
     const j = JSON.parse(m[0]);
-    const action = j.action === "rename" ? "rename" : "keep";
+    let action = j.action === "rename" ? "rename" : "keep";
     let title = String(j.title || "").trim();
+    if (migrate) action = "rename"; // 迁移模式：keep 无效，必须产出新标题
     if (action === "rename") {
-      if (!title) return null;
+      if (!title || title === currentTitle) return null;
       // 分隔符归一化：Qwen 偶尔用 —/–/－ 代替全角「｜」
       if (!title.includes("｜")) {
         const mm = title.match(/^(.+?)\s*[—–－]\s*(.+)$/) || title.match(/^(.+?)\s+-\s+(.+)$/);
